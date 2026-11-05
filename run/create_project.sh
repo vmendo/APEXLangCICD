@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/aux/common.sh"
 [[ $# -le 1 ]] || die "Usage: $0 [project_name]"
+require_delivery_repository
 require_tools git gh python3
 "$SCRIPT_DIR/aux/check_environment.sh" DEV
 [[ ! -f "$DEMO_HOME/.state/project.env" ]] || die "An active project exists. Clean it before creating another project."

@@ -12,7 +12,7 @@ For version-specific options, inspect `help project` in the controlled SQLcl 26.
 
 ## Source versus delivery
 
-This reusable source repository is [vmendo/APEXLangCICD](https://github.com/vmendo/APEXLangCICD), default branch `master`. The configurable example delivery repository is [vmendo/apex_ci_cd_demo](https://github.com/vmendo/apex_ci_cd_demo), with project branch `main`. Use a dedicated disposable delivery repository that you control; never configure the source repository as the cleanup target.
+This reusable source repository is [vmendo/APEXLangCICD](https://github.com/vmendo/APEXLangCICD), default branch `master`. The configurable example delivery repository is `<your-account>/<your-demo-repo>`, with project branch `main`. There is no shared delivery repository. Use a dedicated disposable delivery repository that you control; never configure the source repository as the cleanup target.
 
 ## Tested configuration
 

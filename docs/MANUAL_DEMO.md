@@ -10,7 +10,7 @@ If the initial training model/application do not exist, follow [INITIAL_SETUP.md
 
 ## Source and delivery repositories
 
-Run the scripts from this source checkout (`APEXLangCICD`, default branch `master`). Configure `GITHUB_REPO`/`GITHUB_URL` in `config/local.env` to a **separate disposable delivery repository** that you control. The example is `vmendo/apex_ci_cd_demo`; its project branch defaults to `main`. Full cleanup empties delivery content. Never point delivery configuration at `vmendo/APEXLangCICD` or another repository whose content must be retained.
+Run the scripts from this source checkout (`APEXLangCICD`, default branch `master`). Configure `GITHUB_REPO`/`GITHUB_URL` in `config/local.env` to a **separate disposable delivery repository** that you control. The example is `<your-account>/<your-demo-repo>`; its project branch defaults to `main`. Full cleanup empties delivery content. Never point delivery configuration at `vmendo/APEXLangCICD` or another repository whose content must be retained.
 
 ## Presentation
 

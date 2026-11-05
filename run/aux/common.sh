@@ -9,6 +9,10 @@ require_tools() {
 validate_name() { [[ "$1" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]] || die "Invalid name: $1"; }
 validate_version() { [[ "$1" =~ ^[0-9]+(\.[0-9]+){1,2}([_-][A-Za-z0-9]+)*$ ]] || die "Invalid release version: $1"; }
 validate_identifier() { [[ "$1" =~ ^[A-Z][A-Z0-9_]{0,127}$ ]] || die "Use an unquoted uppercase Oracle identifier: $1"; }
+require_delivery_repository() {
+  [[ -n "$GITHUB_REPO" ]] || die "Set GITHUB_REPO to your own disposable owner/repo in config/local.env before creating a project."
+  [[ "$GITHUB_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "GITHUB_REPO must be a real owner/repo, without placeholder brackets or a URL."
+}
 load_project() {
   [[ -f "$DEMO_HOME/.state/project.env" ]] || die "No active project. Run create_project.sh first."
   source "$DEMO_HOME/.state/project.env"

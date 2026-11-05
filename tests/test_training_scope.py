@@ -81,6 +81,7 @@ print('APEXCICD_STAGE_COMPLETE')
                     'RELEASE_TAG_PREFIX','SQLCL_TIMEOUT'):
             self.env.pop(key,None)
         self.env.update(TEST_HOME=str(self.home),TEST_ACTION_LOG=str(self.actions),
+                        GITHUB_REPO='example/training-hub-delivery',
                         PATH=str(self.bin)+os.pathsep+os.environ['PATH'])
 
     def fake(self,path,label,body):
@@ -94,6 +95,16 @@ print('APEXCICD_STAGE_COMPLETE')
                               text=True,capture_output=True,timeout=15)
         self.assertEqual(result.returncode,0,result.stderr)
         return result
+
+    def test_missing_delivery_repository_stops_before_external_operations(self):
+        env=dict(self.env);env.pop('GITHUB_REPO',None)
+        result=subprocess.run(['bash',str(self.home/'run/create_project.sh')],env=env,
+                              text=True,capture_output=True,timeout=15)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('Set GITHUB_REPO',result.stderr)
+        self.assertFalse(self.actions.exists())
+        self.assertFalse((self.home/'precheck.json').exists())
+        self.assertFalse((self.home/'.state/project.env').exists())
 
     def test_default_training_app_and_native_structures_only_flags(self):
         self.create()
@@ -113,6 +124,8 @@ print('APEXCICD_STAGE_COMPLETE')
         self.assertIn('application_id = 110,',(project/'.dbtools/filters/ddl.filters').read_text())
         state=(self.home/'.state/project.env').read_text()
         self.assertIn('APEX_APP_ID=110\n',state)
+        self.assertIn('GITHUB_REPO=example/training-hub-delivery\n',state)
+        self.assertIn('GITHUB_URL=https://github.com/example/training-hub-delivery.git\n',state)
         self.assertIn('APEX_APP_ID_PRO_PREFERRED=110\n',state)
         self.assertEqual(stat.S_IMODE((self.home/'.state/project.env').stat().st_mode),0o600)
 

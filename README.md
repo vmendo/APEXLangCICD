@@ -13,7 +13,7 @@ Each release opens a GitHub pull request and waits for **manual review and merge
 | Repository | Purpose |
 | --- | --- |
 | `vmendo/APEXLangCICD` | This reusable demo framework, initial application, scripts and documentation. |
-| `vmendo/apex_ci_cd_demo` | Default **disposable delivery repository** for generated project sources, release PRs and artifacts. Configurable. |
+| `<your-account>/<your-demo-repo>` | Your own **disposable delivery repository** for generated project sources, release PRs and artifacts. Configurable. |
 
 **Keep these repositories separate.** Full cleanup empties the configured delivery repository, preserving the repository resource but replacing the default branch with an empty tree and removing delivery branches, tags, releases and other demo artifacts. Do not configure this framework repository, or another valuable repository, as the delivery target.
 
@@ -36,9 +36,15 @@ cp config/example.env config/local.env
 ./run/setup/install_sqlcl.sh /path/to/existing/sqlcl-26.3
 ```
 
-Edit `config/local.env` for your environment. Defaults are source connection `ADB_LOCAL_DEMO`, production ADMIN `ADMIN_ADBFREE`, production connection `DEMO_ADBFREE`, schema/workspace `DEMO`, source application `110`, and delivery repository `vmendo/apex_ci_cd_demo`.
+Edit `config/local.env` for your environment. Defaults are source connection `ADB_LOCAL_DEMO`, production ADMIN `ADMIN_ADBFREE`, production connection `DEMO_ADBFREE`, schema/workspace `DEMO`, source application `110`, and **no default delivery repository**. Set `GITHUB_REPO` to a disposable repository that you own or administer.
 
-Create an empty delivery repository that you control, or deliberately reset the dedicated demo repository before reuse. The framework's own branch is `master`; the generated delivery project defaults to `main`. These are separate Git histories.
+Create an empty delivery repository that you control and set its real `owner/repo` in `config/local.env`, for example:
+
+```bash
+GITHUB_REPO=your-account/your-demo-repo
+```
+
+Project creation stops before any database or GitHub operation if this setting is missing. The framework's own branch is `master`; the generated delivery project defaults to `main`. These are separate Git histories.
 
 1. Create the initial development model/data and import the saved initial app using [Initial setup](docs/INITIAL_SETUP.md). The workspace/schema and an APEX developer account must already exist. The SQL application snapshot is **only for this initial installation**; CI/CD exports live sources natively as APEXlang.
 2. Save the required development and production ADMIN connections in the controlled SQLcl runtime. Use the connection names configured above, or change the configuration.

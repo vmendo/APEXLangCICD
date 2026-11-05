@@ -23,7 +23,7 @@ Release 1.1 introduces `DEMO_TRN_CERTIFICATIONS`, a named sequence and indexes, 
 | Source application ID | `110` |
 | Preferred production ID | Source ID; next free integer if occupied |
 | Object prefix | Literal `DEMO_TRN_` |
-| Disposable delivery repository | `vmendo/apex_ci_cd_demo` (example; configure your own) |
+| Disposable delivery repository | `<your-account>/<your-demo-repo>` (example; configure your own) |
 | Project root | `$DEMO_HOME/projects` |
 | Example project name | `TrainingHubCICD` |
 | Delivery branch / release tag prefix | `main` / `v` |
@@ -37,7 +37,7 @@ Two repositories have distinct roles:
 - `vmendo/APEXLangCICD` is this reusable source repository, with default branch `master`.
 - `GITHUB_REPO` is a separate disposable delivery repository, with default project branch `main`. Generated Projects sources, PRs, tags, and release assets go there; full cleanup empties it.
 
-**Never set `GITHUB_REPO` or `GITHUB_URL` to this source repository.** Choose a dedicated repository you control, such as your own equivalent of the example `vmendo/apex_ci_cd_demo`. It must be safe to empty during cleanup. Do not use a shared production-code repository as the delivery target.
+**Never set `GITHUB_REPO` or `GITHUB_URL` to this source repository.** Choose a dedicated repository you control, such as `<your-account>/<your-demo-repo>`. It must be safe to empty during cleanup. Do not use a shared production-code repository as the delivery target.
 
 Copy `config/example.env` to `config/local.env` during initial configuration and edit non-secret settings. Stage scripts load it automatically. Explicit local-file assignments take precedence over inherited environment values. The selected project identity and connections are retained outside its checkout so release, deployment, and cleanup use the same target.
 

@@ -6,7 +6,7 @@ This is one-time development preparation when the training model/application are
 
 Use the configured development workspace/parsing schema (defaults: `DEMO` / `DEMO`, connection `ADB_LOCAL_DEMO`). The workspace must already exist, be mapped to that schema, and have a developer account for APEX Accounts sign-in. Schema creation privileges and the controlled SQLcl 26.3 runtime must be available. This setup recreates the demo model/data/app; it does not provision a database, ORDS, workspace users or their passwords.
 
-Install an external SQLcl 26.3 distribution with `./run/setup/install_sqlcl.sh /path/to/sqlcl-distribution` and configure saved source/admin/target connections first. Copy `config/example.env` to `config/local.env` and adapt the environment values. The source repository is `vmendo/APEXLangCICD` (`master`); `GITHUB_REPO` must identify a separate disposable delivery repository, such as your own equivalent of `vmendo/apex_ci_cd_demo` (`main`). Cleanup will empty that delivery repository, not this source checkout.
+Install an external SQLcl 26.3 distribution with `./run/setup/install_sqlcl.sh /path/to/sqlcl-distribution` and configure saved source/admin/target connections first. Copy `config/example.env` to `config/local.env` and adapt the environment values. The source repository is `vmendo/APEXLangCICD` (`master`); `GITHUB_REPO` must identify a separate disposable delivery repository, such as `<your-account>/<your-demo-repo>` (`main`). Cleanup will empty that delivery repository, not this source checkout.
 
 ## 1. Create and populate the initial model
 
