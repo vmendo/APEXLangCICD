@@ -1,0 +1,261 @@
+page 5 (
+    name: Enrollments
+    alias: ENROLLMENTS
+    title: Enrollments
+    pageGroup: @training
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    region title-bar (
+        name: Enrollments
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+    region enrollments (
+        name: Employee enrollments
+        type: interactiveReport
+        actionsMenu {
+            chart: false
+        }
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select n.ID,e.FIRST_NAME||' '||e.LAST_NAME as EMPLOYEE_NAME,c.COURSE_NAME,s.SESSION_CODE,s.START_DATE,n.ENROLLED_AT,n.STATUS,v.SCORE from DEMO_TRN_ENROLLMENTS n join DEMO_TRN_EMPLOYEES e on e.ID=n.EMPLOYEE_ID join DEMO_TRN_SESSIONS s on s.ID=n.SESSION_ID join DEMO_TRN_COURSES c on c.ID=s.COURSE_ID left join DEMO_TRN_EVALUATIONS v on v.ENROLLMENT_ID=n.ID
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No records match your search.
+        }
+        column ID (
+            type: hidden
+            heading {
+                heading: ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+        )
+        column EMPLOYEE_NAME (
+            type: link
+            heading {
+                heading: Employee
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            link {
+                target: {
+                    page: 13
+                    clearCache: 13
+                    items: {
+                        P13_ID: #ID#
+                    }
+                }
+                linkText: #EMPLOYEE_NAME#
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Employee; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: Yes; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column COURSE_NAME (
+            type: plainText
+            heading {
+                heading: Course
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Course; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SESSION_CODE (
+            type: plainText
+            heading {
+                heading: Session
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Session; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column START_DATE (
+            type: plainText
+            heading {
+                heading: Starts
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Starts; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column ENROLLED_AT (
+            type: plainText
+            heading {
+                heading: Enrolled
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Enrolled; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column STATUS (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Status; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SCORE (
+            type: plainText
+            heading {
+                heading: Rating out of 5
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Rating (1–5); Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+            displayColumn EMPLOYEE_NAME (
+                sequence: 20
+            )
+            displayColumn COURSE_NAME (
+                sequence: 30
+            )
+            displayColumn SESSION_CODE (
+                sequence: 40
+            )
+            displayColumn START_DATE (
+                sequence: 50
+            )
+            displayColumn ENROLLED_AT (
+                sequence: 60
+            )
+            displayColumn STATUS (
+                sequence: 70
+            )
+            displayColumn SCORE (
+                sequence: 80
+            )
+        )
+    )
+    button create-record (
+        buttonName: CREATE
+        label: Add enrollment
+        layout {
+            sequence: 10
+            region: @title-bar
+            slot: NEXT
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+            hot: true
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 13
+                clearCache: 13
+            }
+        }
+    )
+)

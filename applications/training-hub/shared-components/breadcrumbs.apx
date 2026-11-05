@@ -1,0 +1,135 @@
+breadcrumb breadcrumb (
+    name: Training Breadcrumb
+    entry overview (
+        name: Overview
+        pageNumber: 1
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 1
+            }
+        }
+    )
+    entry employees (
+        name: Employees
+        pageNumber: 2
+        execution {
+            sequence: 20
+        }
+        appearance {
+            parentEntry: @overview
+        }
+        link {
+            target: {
+                page: 2
+            }
+        }
+    )
+    entry courses (
+        name: Courses
+        pageNumber: 3
+        execution {
+            sequence: 30
+        }
+        appearance {
+            parentEntry: @overview
+        }
+        link {
+            target: {
+                page: 3
+            }
+        }
+    )
+    entry course-sessions (
+        name: Course Sessions
+        pageNumber: 4
+        execution {
+            sequence: 40
+        }
+        appearance {
+            parentEntry: @overview
+        }
+        link {
+            target: {
+                page: 4
+            }
+        }
+    )
+    entry enrollments (
+        name: Enrollments
+        pageNumber: 5
+        execution {
+            sequence: 50
+        }
+        appearance {
+            parentEntry: @overview
+        }
+        link {
+            target: {
+                page: 5
+            }
+        }
+    )
+    entry evaluations (
+        name: Evaluations
+        pageNumber: 6
+        execution {
+            sequence: 60
+        }
+        appearance {
+            parentEntry: @overview
+        }
+        link {
+            target: {
+                page: 6
+            }
+        }
+    )
+    entry employee (
+        name: Employee
+        pageNumber: 11
+        execution {
+            sequence: 110
+        }
+        appearance {
+            parentEntry: @employees
+        }
+        link {
+            target: {
+                page: 11
+            }
+        }
+    )
+    entry course (
+        name: Course
+        pageNumber: 12
+        execution {
+            sequence: 120
+        }
+        appearance {
+            parentEntry: @courses
+        }
+        link {
+            target: {
+                page: 12
+            }
+        }
+    )
+    entry enrollment (
+        name: Enrollment
+        pageNumber: 13
+        execution {
+            sequence: 130
+        }
+        appearance {
+            parentEntry: @enrollments
+        }
+        link {
+            target: {
+                page: 13
+            }
+        }
+    )
+)

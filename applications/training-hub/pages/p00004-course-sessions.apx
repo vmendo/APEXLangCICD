@@ -1,0 +1,282 @@
+page 4 (
+    name: Course Sessions
+    alias: COURSE-SESSIONS
+    title: Course Sessions
+    pageGroup: @training
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    region title-bar (
+        name: Course Sessions
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+    region sessions (
+        name: Course sessions
+        type: interactiveReport
+        actionsMenu {
+            chart: false
+        }
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select s.ID, c.COURSE_NAME, s.SESSION_CODE, s.START_DATE, s.END_DATE,
+                       i.FIRST_NAME || ' ' || i.LAST_NAME as INSTRUCTOR,
+                       l.CITY, s.CAPACITY, s.STATUS,
+                       (select count(*) from DEMO_TRN_ENROLLMENTS e where e.SESSION_ID=s.ID and e.STATUS<>'CANCELLED') as ENROLLED
+                from DEMO_TRN_SESSIONS s
+                join DEMO_TRN_COURSES c on c.ID=s.COURSE_ID
+                join DEMO_TRN_INSTRUCTORS i on i.ID=s.INSTRUCTOR_ID
+                join DEMO_TRN_ROOMS r on r.ID=s.ROOM_ID
+                join DEMO_TRN_LOCATIONS l on l.ID=r.LOCATION_ID
+
+                order by s.START_DATE
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No records match your search.
+        }
+        column ID (
+            type: hidden
+            heading {
+                heading: ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+        )
+        column COURSE_NAME (
+            type: plainText
+            heading {
+                heading: Course
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Course; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SESSION_CODE (
+            type: plainText
+            heading {
+                heading: Session
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Session; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column START_DATE (
+            type: plainText
+            heading {
+                heading: Starts
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Starts; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column END_DATE (
+            type: plainText
+            heading {
+                heading: Ends
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Ends; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column INSTRUCTOR (
+            type: plainText
+            heading {
+                heading: Instructor
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Instructor; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column CITY (
+            type: plainText
+            heading {
+                heading: City
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: City; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column CAPACITY (
+            type: plainText
+            heading {
+                heading: Capacity
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Capacity; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column STATUS (
+            type: plainText
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Status; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column ENROLLED (
+            type: plainText
+            heading {
+                heading: Enrolled
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Enrolled; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+            displayColumn COURSE_NAME (
+                sequence: 20
+            )
+            displayColumn SESSION_CODE (
+                sequence: 30
+            )
+            displayColumn START_DATE (
+                sequence: 40
+            )
+            displayColumn END_DATE (
+                sequence: 50
+            )
+            displayColumn INSTRUCTOR (
+                sequence: 60
+            )
+            displayColumn CITY (
+                sequence: 70
+            )
+            displayColumn CAPACITY (
+                sequence: 80
+            )
+            displayColumn STATUS (
+                sequence: 90
+            )
+            displayColumn ENROLLED (
+                sequence: 100
+            )
+        )
+    )
+)

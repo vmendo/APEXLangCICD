@@ -1,0 +1,433 @@
+page 1 (
+    name: Overview
+    alias: OVERVIEW
+    title: Overview
+    pageGroup: @training
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    region title-bar (
+        name: Overview
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+    region training-metrics (
+        name: Training at a glance
+        type: themeTemplateComponent/metricCard
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 'Active employees' as TITLE, to_char(count(*)) as METRIC, 'People investing in new skills' as META from DEMO_TRN_EMPLOYEES where STATUS='ACTIVE'
+                union all select 'Active courses', to_char(count(*)), 'Learning opportunities in the catalog' from DEMO_TRN_COURSES where STATUS='ACTIVE'
+                union all select 'Scheduled sessions', to_char(count(*)), 'Upcoming classroom training' from DEMO_TRN_SESSIONS where STATUS='SCHEDULED'
+                union all select 'Completed enrollments', to_char(count(*)), 'Learning journeys completed' from DEMO_TRN_ENROLLMENTS where STATUS='COMPLETED'
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            display: report
+        }
+        settings {
+            title: &TITLE.
+            metric: &METRIC.
+            meta: &META.
+            layout: 4Columns
+        }
+        column TITLE (
+            layout {
+                sequence: 10
+            }
+            appearance {
+                group: false
+            }
+            source {
+                databaseColumn: TITLE
+                dataType: varchar2
+            }
+        )
+        column METRIC (
+            layout {
+                sequence: 20
+            }
+            appearance {
+                group: false
+            }
+            source {
+                databaseColumn: METRIC
+                dataType: varchar2
+            }
+        )
+        column META (
+            layout {
+                sequence: 30
+            }
+            appearance {
+                group: false
+            }
+            source {
+                databaseColumn: META
+                dataType: varchar2
+            }
+        )
+    )
+    region enrollments-by-department (
+        name: Learning participation by department
+        type: interactiveReport
+        actionsMenu {
+            chart: false
+        }
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                with participation as (
+                 select d.DEPARTMENT_NAME, count(n.ID) ENROLLMENTS
+                 from DEMO_TRN_DEPARTMENTS d
+                 left join DEMO_TRN_EMPLOYEES e on e.DEPARTMENT_ID=d.ID
+                 left join DEMO_TRN_ENROLLMENTS n on n.EMPLOYEE_ID=e.ID and n.STATUS<>'CANCELLED'
+                 group by d.DEPARTMENT_NAME
+                )
+                select DEPARTMENT_NAME, ENROLLMENTS,
+                       round(100*ENROLLMENTS/nullif(sum(ENROLLMENTS) over(),0)) as ENROLLMENT_PCT
+                from participation order by ENROLLMENTS desc,DEPARTMENT_NAME
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No records match your search.
+        }
+        column DEPARTMENT_NAME (
+            type: plainText
+            heading {
+                heading: Department
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Department; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column ENROLLMENTS (
+            type: plainText
+            heading {
+                heading: Enrollments
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Enrollments; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column ENROLLMENT_PCT (
+            type: percentGraph
+            heading {
+                heading: Share of enrollments
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Share of enrollments; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+            displayColumn DEPARTMENT_NAME (
+                sequence: 10
+            )
+            displayColumn ENROLLMENTS (
+                sequence: 20
+            )
+            displayColumn ENROLLMENT_PCT (
+                sequence: 30
+            )
+        )
+    )
+    region upcoming-sessions (
+        name: Upcoming course sessions
+        type: interactiveReport
+        actionsMenu {
+            chart: false
+        }
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select s.ID, c.COURSE_NAME, s.SESSION_CODE, s.START_DATE, s.END_DATE,
+                       i.FIRST_NAME || ' ' || i.LAST_NAME as INSTRUCTOR,
+                       l.CITY, s.CAPACITY,
+                       (select count(*) from DEMO_TRN_ENROLLMENTS e where e.SESSION_ID=s.ID and e.STATUS<>'CANCELLED') as ENROLLED
+                from DEMO_TRN_SESSIONS s
+                join DEMO_TRN_COURSES c on c.ID=s.COURSE_ID
+                join DEMO_TRN_INSTRUCTORS i on i.ID=s.INSTRUCTOR_ID
+                join DEMO_TRN_ROOMS r on r.ID=s.ROOM_ID
+                join DEMO_TRN_LOCATIONS l on l.ID=r.LOCATION_ID
+                where s.STATUS='SCHEDULED'
+                order by s.START_DATE
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No records match your search.
+        }
+        column ID (
+            type: hidden
+            heading {
+                heading: ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+        )
+        column COURSE_NAME (
+            type: plainText
+            heading {
+                heading: Course
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Course; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SESSION_CODE (
+            type: plainText
+            heading {
+                heading: Session
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Session; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column START_DATE (
+            type: plainText
+            heading {
+                heading: Starts
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Starts; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column END_DATE (
+            type: plainText
+            heading {
+                heading: Ends
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Ends; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column INSTRUCTOR (
+            type: plainText
+            heading {
+                heading: Instructor
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Instructor; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column CITY (
+            type: plainText
+            heading {
+                heading: City
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: City; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column CAPACITY (
+            type: plainText
+            heading {
+                heading: Capacity
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Capacity; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column ENROLLED (
+            type: plainText
+            heading {
+                heading: Enrolled
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Enrolled; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+            displayColumn COURSE_NAME (
+                sequence: 20
+            )
+            displayColumn SESSION_CODE (
+                sequence: 30
+            )
+            displayColumn START_DATE (
+                sequence: 40
+            )
+            displayColumn END_DATE (
+                sequence: 50
+            )
+            displayColumn INSTRUCTOR (
+                sequence: 60
+            )
+            displayColumn CITY (
+                sequence: 70
+            )
+            displayColumn CAPACITY (
+                sequence: 80
+            )
+            displayColumn ENROLLED (
+                sequence: 90
+            )
+        )
+    )
+)

@@ -1,0 +1,206 @@
+page 6 (
+    name: Evaluations
+    alias: EVALUATIONS
+    title: Evaluations
+    pageGroup: @training
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    region title-bar (
+        name: Evaluations
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+    region evaluations (
+        name: Course feedback
+        type: interactiveReport
+        actionsMenu {
+            chart: false
+        }
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select v.ID,c.COURSE_NAME,e.FIRST_NAME||' '||e.LAST_NAME as EMPLOYEE_NAME,s.SESSION_CODE,v.SCORE,v.COMMENTS,v.SUBMITTED_AT from DEMO_TRN_EVALUATIONS v join DEMO_TRN_ENROLLMENTS n on n.ID=v.ENROLLMENT_ID join DEMO_TRN_EMPLOYEES e on e.ID=n.EMPLOYEE_ID join DEMO_TRN_SESSIONS s on s.ID=n.SESSION_ID join DEMO_TRN_COURSES c on c.ID=s.COURSE_ID
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No records match your search.
+        }
+        column ID (
+            type: hidden
+            heading {
+                heading: ID
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+        )
+        column COURSE_NAME (
+            type: plainText
+            heading {
+                heading: Course
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Course; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column EMPLOYEE_NAME (
+            type: plainText
+            heading {
+                heading: Employee
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Employee; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SESSION_CODE (
+            type: plainText
+            heading {
+                heading: Session
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Session; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SCORE (
+            type: plainText
+            heading {
+                heading: Rating out of 5
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: NUMBER
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Rating (1–5); Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column COMMENTS (
+            type: plainText
+            heading {
+                heading: Feedback
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Feedback; Display in Report: Yes; Display in Form: No; Format Mask: none; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        column SUBMITTED_AT (
+            type: plainText
+            heading {
+                heading: Submitted
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: DATE
+            }
+            appearance {
+                formatMask: DD Mon YYYY
+            }
+            comments {
+                comments:
+                    ```
+                    Display Label: Submitted; Display in Report: Yes; Display in Form: No; Format Mask: DD Mon YYYY; Value Required: No; Read Only: Yes; Primary Display Column: No; Authorization Scheme: authenticated application.
+                    ```
+            }
+        )
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 15
+            }
+            displayColumn COURSE_NAME (
+                sequence: 20
+            )
+            displayColumn EMPLOYEE_NAME (
+                sequence: 30
+            )
+            displayColumn SESSION_CODE (
+                sequence: 40
+            )
+            displayColumn SCORE (
+                sequence: 50
+            )
+            displayColumn COMMENTS (
+                sequence: 60
+            )
+            displayColumn SUBMITTED_AT (
+                sequence: 70
+            )
+        )
+    )
+)

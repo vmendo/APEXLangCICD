@@ -1,139 +1,141 @@
-#!/bin/bash
-
-# =========================================
-# DEPLOY PROJECT SCRIPT (argument-based)
-# Usage:
-#   deploy_project.sh <environment> <release_version>
-# Examples:
-#   deploy_project.sh UAT 1.0
-#   deploy_project.sh PRO 1.0
-# =========================================
-
+#!/usr/bin/env bash
+# Download and deploy a published release without regenerating it.
 set -euo pipefail
-
-# --- Colors ---
-RED='\033[31m'
-GREEN='\033[32m'
-BLUE='\033[34m'
-YELLOW='\033[33m'
-NC='\033[0m'
-
-# Load environment variables
-# Expected in setup_env.sh:
-#   PROJECTS_HOME, PROJECT_NAME
-#   GITHUB_USER, GITHUB_REPO
-#   DB_CONNECT_UAT, DB_CONNECT_PRO
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-source "$SCRIPT_DIR/setup_env.sh"
-
-# -----------------------------------------
-# 0) Parse and validate arguments
-# -----------------------------------------
-if [ $# -ne 2 ]; then
-  echo -e "${RED}Usage: $0 <environment> <release_version>${NC}"
-  echo -e "${RED}Examples: $0 UAT 1.0  |  $0 PRO 1.0${NC}"
-  exit 1
-fi
-
-ENVIRONMENT_RAW="$1"
-RELEASE_VERSION="$2"
-
-# Normalize environment to upper case
-ENVIRONMENT="$(echo "$ENVIRONMENT_RAW" | tr '[:lower:]' '[:upper:]')"
-
-case "$ENVIRONMENT" in
-  UAT)
-    DB_CONNECT="${DB_CONNECT_UAT:?DB_CONNECT_UAT must be defined in setup_env.sh}"
-    ;;
-  PRO)
-    DB_CONNECT="${DB_CONNECT_PRO:?DB_CONNECT_PRO must be defined in setup_env.sh}"
-    ;;
-  *)
-    echo -e "${RED}Invalid environment: ${ENVIRONMENT_RAW}${NC}"
-    echo -e "${RED}Valid values are: UAT or PRO${NC}"
-    exit 1
-    ;;
-esac
-
-# -----------------------------------------
-# 1) Basic validations (tools and variables)
-# -----------------------------------------
-command -v sql >/dev/null 2>&1 || { echo -e "${RED}SQLcl (sql) not found in PATH${NC}"; exit 1; }
-command -v gh  >/dev/null 2>&1 || { echo -e "${RED}GitHub CLI (gh) not found in PATH${NC}"; exit 1; }
-
-: "${PROJECTS_HOME:?PROJECTS_HOME must be defined in setup_env.sh}"
-: "${PROJECT_NAME:?PROJECT_NAME must be defined in setup_env.sh}"
-: "${GITHUB_USER:?GITHUB_USER must be defined in setup_env.sh}"
-: "${GITHUB_REPO:?GITHUB_REPO must be defined in setup_env.sh}"
-
-FULL_REPO="${GITHUB_USER}/${GITHUB_REPO}"
-TAG="v${RELEASE_VERSION}"
-ASSET_NAME="${PROJECT_NAME}-${RELEASE_VERSION}.zip"
-
-# -----------------------------------------
-# 2) Directory layout for artifacts
-# -----------------------------------------
-PROJECT_BASE_DIR="${PROJECTS_HOME}/${PROJECT_NAME}"
-ARTIFACT_DIR="${PROJECT_BASE_DIR}/artifacts"
-ARTIFACT_PATH="${ARTIFACT_DIR}/${ASSET_NAME}"
-
-mkdir -p "${ARTIFACT_DIR}"
-
-echo ""
-echo -e "${BLUE}🚀 Starting deployment${NC}"
-echo -e "${BLUE}🔹 Environment:      ${ENVIRONMENT}${NC}"
-echo -e "${BLUE}🔹 Release version:   ${RELEASE_VERSION}${NC}"
-echo -e "${BLUE}🔹 GitHub repo:       ${FULL_REPO}${NC}"
-echo -e "${BLUE}🔹 Release tag:       ${TAG}${NC}"
-echo -e "${BLUE}🔹 Artifact name:     ${ASSET_NAME}${NC}"
-echo -e "${BLUE}🔹 Artifact directory:${ARTIFACT_DIR}${NC}"
-echo -e "${BLUE}🔹 DB connection:     ${DB_CONNECT}${NC}"
-echo ""
-
-# -----------------------------------------
-# 3) Check release and asset on GitHub
-# -----------------------------------------
-echo -e "${BLUE}🔎 Checking release ${TAG} in ${FULL_REPO}...${NC}"
-
-ASSET_LIST="$(gh release view "${TAG}" --repo "${FULL_REPO}" --json assets --jq '.assets[].name')"
-
-if ! echo "${ASSET_LIST}" | grep -qx "${ASSET_NAME}"; then
-  echo -e "${RED}❌ Release ${TAG} in ${FULL_REPO} does not contain asset ${ASSET_NAME}.${NC}"
-  echo -e "${YELLOW}Available assets in this release:${NC}"
-  echo "${ASSET_LIST:-<none>}"
-  exit 1
-fi
-
-echo -e "${GREEN}✔ Release and asset found in GitHub.${NC}"
-
-# -----------------------------------------
-# 4) Download artifact if needed
-# -----------------------------------------
-if [[ -f "${ARTIFACT_PATH}" ]]; then
-  echo -e "${GREEN}✅ Artifact already present: ${ARTIFACT_PATH}${NC}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/aux/common.sh"
+[[ $# -eq 2 || ( $# -eq 3 && "$3" == --resume ) ]] || die "Usage: $0 <PRO> <version> [--resume]"
+resume=false
+[[ "${3:-}" != --resume ]] || resume=true
+require_tools git gh python3 shasum
+load_project
+attempt="$DEMO_HOME/.state/deployment-attempt.json"
+if [[ "$resume" == true ]]; then
+  [[ -f "$attempt" ]] || die "No interrupted deployment exists to resume."
 else
-  echo -e "${BLUE}⬇️  Downloading artifact from GitHub Releases...${NC}"
-  gh release download "${TAG}" \
-    --repo "${FULL_REPO}" \
-    --pattern "${ASSET_NAME}" \
-    --dir "${ARTIFACT_DIR}" \
-    --clobber
-  echo -e "${GREEN}✔ Artifact downloaded to: ${ARTIFACT_PATH}${NC}"
+  [[ ! -f "$attempt" ]] || die "A prior deployment needs inspection. After diagnosis, use: $0 PRO <version> --resume"
 fi
-
-# -----------------------------------------
-# 5) Deploy with SQLcl Project Deploy
-# -----------------------------------------
-echo ""
-echo -e "${BLUE}🚀 Deploying version ${RELEASE_VERSION} to ${ENVIRONMENT}...${NC}"
-echo -e "${YELLOW}Artifact path: ${ARTIFACT_PATH}${NC}"
-echo ""
-
-sql -name "${DB_CONNECT}" <<EOF
-SET SCAN OFF;
-project deploy -file ${ARTIFACT_PATH} -verbose
-exit
+environment="$1"
+version="$2"
+validate_version "$version"
+[[ "$SQLCL_DEPLOY_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || die "SQLCL_DEPLOY_TIMEOUT must be a positive integer."
+[[ "$environment" == PRO || "$environment" == pro ]] || die "Supported environment: PRO. Configure DB_CONNECT_PRO for the intended target."
+if [[ "$resume" != true ]]; then
+  "$SCRIPT_DIR/aux/resolve_target_appid.sh"
+  load_project
+else
+  APEX_APP_ID_PRO="$(python3 - "$attempt" "$PROJECT_DIR" "$version" "$DEMO_HOME/.state/deployments" <<'PY'
+import json,sys
+from pathlib import Path
+m=json.loads(Path(sys.argv[1]).read_text())
+if m['project_dir']!=str(Path(sys.argv[2]).resolve()) or m['version']!=sys.argv[3]:
+    raise SystemExit('Interrupted deployment belongs to another project/version.')
+p=Path(m['snapshot_dir'])
+if p.is_symlink() or not p.resolve(strict=True).is_relative_to(Path(sys.argv[4]).resolve(strict=True)):
+    raise SystemExit('Interrupted deployment snapshot is outside the state directory.')
+before=json.loads((p/'before.json').read_text())
+value=before['app_id']
+if isinstance(value,bool) or not isinstance(value,int) or value<=0: raise SystemExit('Invalid original target application ID.')
+print(value)
+PY
+)" || die "Interrupted target identity validation failed."
+  export APEX_APP_ID_PRO
+fi
+"$SCRIPT_DIR/aux/check_environment.sh" PRO
+tag="${RELEASE_TAG_PREFIX:-v}${version}"
+artifact_name="$PROJECT_NAME-$version.zip"
+mkdir -p "$PROJECT_DIR/artifacts"
+download_dir="$(mktemp -d "$PROJECT_DIR/artifacts/$version.XXXXXX")"
+gh release download "$tag" --repo "$GITHUB_REPO" --pattern "$artifact_name" --pattern "$artifact_name.sha256" --dir "$download_dir"
+(cd "$download_dir" && shasum -a 256 -c "$artifact_name.sha256")
+artifact="$download_dir/$artifact_name"
+[[ -s "$artifact" ]] || die "Downloaded release artifact is missing."
+cd "$PROJECT_DIR"
+[[ -z "$(git status --porcelain)" ]] || die "Project working tree must be clean."
+original_ref="$(git symbolic-ref --short -q HEAD || git rev-parse HEAD)"
+git fetch origin "refs/tags/$tag:refs/tags/$tag"
+git checkout --detach "$tag"
+trap 'git checkout "$original_ref" >/dev/null 2>&1 || true' EXIT
+if [[ "$resume" == true ]]; then
+  snapshot_dir="$(python3 - "$attempt" <<'PY'
+import json,sys
+print(json.load(open(sys.argv[1]))['snapshot_dir'])
+PY
+)"
+  resume_inventory="$snapshot_dir/resume-$(date -u +%Y%m%dT%H%M%S)-$$.json"
+  "$SCRIPT_DIR/aux/capture_target_inventory.sh" "$resume_inventory"
+  python3 "$SCRIPT_DIR/aux/deployment_resume.py" --project-dir "$PROJECT_DIR" --attempt "$attempt" --inventory "$resume_inventory" --artifact "$artifact" --version "$version" --output "$resume_inventory.preflight.json"
+  # Bind retries to the exact artifact downloaded by the interrupted attempt.
+  python3 - "$attempt" "$artifact" "$PROJECT_DIR" "$artifact_name" <<'PY'
+import hashlib,json,sys
+from pathlib import Path
+m=json.loads(Path(sys.argv[1]).read_text());artifact=Path(sys.argv[2])
+digest=hashlib.sha256(artifact.read_bytes()).hexdigest()
+expected=m.get('artifact_sha256')
+if not expected:
+    cached=[p for p in (Path(sys.argv[3])/'artifacts').glob('*/'+sys.argv[4]) if p.resolve()!=artifact.resolve()]
+    checks={hashlib.sha256(p.read_bytes()).hexdigest() for p in cached}
+    if checks!={digest}: raise SystemExit('Original cached artifact is missing, changed or ambiguous; inspect before retrying.')
+elif expected!=digest: raise SystemExit('Published artifact differs from the interrupted deployment.')
+print('Resume uses the identical interrupted release artifact.')
+PY
+  defaults="$snapshot_dir/resume-target-$(date -u +%Y%m%dT%H%M%S)-$$.properties"
+  python3 "$SCRIPT_DIR/aux/prepare_deploy_defaults.py" "$artifact" "$resume_inventory" "$defaults"
+  # Confirm the old client is gone before the user-requested retry releases its
+  # stale lock. Any other target-schema session requires manual inspection.
+  read -r verified_db verified_service < <(python3 - "$resume_inventory" <<'PY'
+import json,re,sys
+m=json.load(open(sys.argv[1]))
+if not all(re.fullmatch(r'[A-Za-z0-9_.-]+',m[k]) for k in ('database','service')):raise SystemExit('Invalid database identity.')
+print(m['database'],m['service'])
+PY
+)
+  [[ -n "$verified_db" && -n "$verified_service" ]] || die "Could not verify resume database identity."
+  echo "Checking that no production-schema sessions remain before recovering the interrupted migration..."
+  run_sql "$DB_CONNECT_ADMIN" resume-deployment-sessions <<EOF
+set serveroutput on
+declare n number;begin
+  if user<>'ADMIN' or sys_context('USERENV','DB_NAME')<>'$verified_db'
+     or sys_context('USERENV','SERVICE_NAME')<>'$verified_service' then
+    raise_application_error(-20090,'Resume administrative database identity mismatch');
+  end if;
+  select count(*) into n from v\$session where username='$SCHEMA_NAME_PRO';
+  if n>0 then raise_application_error(-20091,'Production schema still has sessions; inspect them before releasing a migration lock');end if;
+end;
+/
 EOF
-
-echo ""
-echo -e "${GREEN}🎉 Deployment of version ${RELEASE_VERSION} to ${ENVIRONMENT} completed successfully!${NC}"
+  run_sql "$DB_CONNECT_PRO" resume-deployment-lock <<EOF
+begin
+  if user<>'$SCHEMA_NAME_PRO' or sys_context('USERENV','DB_NAME')<>'$verified_db'
+     or sys_context('USERENV','SERVICE_NAME')<>'$verified_service' then
+    raise_application_error(-20092,'Resume lock recovery database identity mismatch');
+  end if;
+end;
+/
+lb release-locks
+EOF
+else
+  snapshot_dir="$DEMO_HOME/.state/deployments/$version-$(date -u +%Y%m%dT%H%M%S)-$$"
+  mkdir -p "$snapshot_dir"
+  "$SCRIPT_DIR/aux/capture_target_inventory.sh" "$snapshot_dir/before.json"
+  python3 "$SCRIPT_DIR/aux/deployment_preflight.py" "$PROJECT_DIR" "$snapshot_dir/before.json" "$DEMO_HOME/.state/production-setup.json" "$DEMO_HOME/.state/deployment.json"
+  defaults="$snapshot_dir/target.properties"
+  python3 "$SCRIPT_DIR/aux/prepare_deploy_defaults.py" "$artifact" "$snapshot_dir/before.json" "$defaults"
+  python3 - "$attempt" "$snapshot_dir" "$version" "$PROJECT_DIR" "$artifact" <<'PY'
+import hashlib,json,os,sys
+from datetime import datetime,timezone
+fd=os.open(sys.argv[1],os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+with os.fdopen(fd,'w') as f:
+    json.dump(dict(snapshot_dir=sys.argv[2],version=sys.argv[3],project_dir=sys.argv[4],started_utc=datetime.now(timezone.utc).isoformat(),artifact_sha256=hashlib.sha256(open(sys.argv[5],'rb').read()).hexdigest()),f,indent=2)
+PY
+fi
+rm -f "$DEMO_HOME/.state/deployment.cleaned.json"
+echo "Deploying release $version (timeout ${SQLCL_DEPLOY_TIMEOUT}s). SQLcl reports progress every 15 seconds while running."
+SQLCL_TIMEOUT="$SQLCL_DEPLOY_TIMEOUT" run_sql "$DB_CONNECT_PRO" "deploy-$version" <<EOF
+project deploy -file "$artifact" -defaults-file "$defaults" -verbose
+EOF
+"$SCRIPT_DIR/aux/check_environment.sh" PRO
+after="$snapshot_dir/after-$(date -u +%Y%m%dT%H%M%S)-$$.json"
+"$SCRIPT_DIR/aux/capture_target_inventory.sh" "$after"
+python3 "$SCRIPT_DIR/aux/record_deployment.py" --project-dir "$PROJECT_DIR" --production-setup "$DEMO_HOME/.state/production-setup.json" --version "$version" --before "$snapshot_dir/before.json" --after "$after" --output "$DEMO_HOME/.state/deployment.json"
+rm -f "$DEMO_HOME/.state/deployment-attempt.json"
+printf 'Deployed and recorded %s to %s. Run target validation before continuing.\n' "$version" "$DB_CONNECT_PRO"

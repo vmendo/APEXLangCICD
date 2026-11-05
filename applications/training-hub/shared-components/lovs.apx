@@ -1,0 +1,147 @@
+lov boolean (
+    name: BOOLEAN
+    source {
+        location: staticValues
+    }
+
+    entry false (
+        sequence: 2
+        display: No
+        return: FALSE
+    )
+
+    entry true (
+        sequence: 1
+        display: Yes
+        return: TRUE
+    )
+
+)
+
+lov departments (
+    name: DEPARTMENTS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select department_name d, id r from demo_trn_departments order by department_name
+            ```
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
+lov categories (
+    name: CATEGORIES
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select category_name d, id r from demo_trn_categories order by category_name
+            ```
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
+lov employees (
+    name: EMPLOYEES
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select employee_number || ' - ' || first_name || ' ' || last_name d, id r from demo_trn_employees order by last_name, first_name
+            ```
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
+lov sessions (
+    name: SESSIONS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select s.session_code || ' - ' || c.course_name || ' (' || to_char(s.start_date, 'DD Mon YYYY') || ')' d, s.id r from demo_trn_sessions s join demo_trn_courses c on c.id = s.course_id order by s.start_date, s.session_code
+            ```
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
+lov employee-status (
+    name: EMPLOYEE_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry active (
+        sequence: 1
+        display: Active
+        return: ACTIVE
+    )
+
+    entry inactive (
+        sequence: 2
+        display: Inactive
+        return: INACTIVE
+    )
+)
+
+lov course-status (
+    name: COURSE_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry active (
+        sequence: 1
+        display: Active
+        return: ACTIVE
+    )
+
+    entry retired (
+        sequence: 2
+        display: Retired
+        return: RETIRED
+    )
+)
+
+lov enrollment-status (
+    name: ENROLLMENT_STATUS
+    source {
+        location: staticValues
+    }
+
+    entry enrolled (
+        sequence: 1
+        display: Enrolled
+        return: ENROLLED
+    )
+
+    entry completed (
+        sequence: 2
+        display: Completed
+        return: COMPLETED
+    )
+
+    entry cancelled (
+        sequence: 3
+        display: Cancelled
+        return: CANCELLED
+    )
+)
+

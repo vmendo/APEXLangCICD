@@ -1,0 +1,432 @@
+page 11 (
+    name: Employee
+    alias: EMPLOYEE
+    title: Employee
+    appearance {
+        pageMode: normal
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: firstItemOnPage
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Employee
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+        }
+    )
+
+    region employee (
+        name: Employee Details
+        type: form
+        source {
+            location: localDatabase
+            type: tableView
+            tableName: DEMO_TRN_EMPLOYEES
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+            lostUpdateType: rowValues
+        }
+    )
+
+    region buttons (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+    pageItem P11_ID (
+        type: hidden
+        settings {
+            valueProtected: true
+        }
+        layout {
+            sequence: 10
+            region: @employee
+            slot: regionBody
+        }
+        source {
+            formRegion: @employee
+            column: ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+    pageItem P11_DEPARTMENT_ID (
+        type: selectList
+        label {
+            label: Department
+        }
+        lov {
+            type: sharedComponent
+            lov: @departments
+            displayNullValue: true
+            nullDisplayValue: Select an option
+        }
+        layout {
+            sequence: 20
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @employee
+            column: DEPARTMENT_ID
+            dataType: number
+        }
+    )
+    pageItem P11_EMPLOYEE_NUMBER (
+        type: textField
+        settings {
+            trimSpaces: leadingAndTrailing
+        }
+        label {
+            label: Employee Number
+        }
+        layout {
+            sequence: 30
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            width: 50
+        }
+        validation {
+            valueRequired: true
+            maxLength: 20
+        }
+        source {
+            formRegion: @employee
+            column: EMPLOYEE_NUMBER
+            dataType: varchar2
+        }
+    )
+    pageItem P11_FIRST_NAME (
+        type: textField
+        settings {
+            trimSpaces: leadingAndTrailing
+        }
+        label {
+            label: First Name
+        }
+        layout {
+            sequence: 40
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            width: 50
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+        source {
+            formRegion: @employee
+            column: FIRST_NAME
+            dataType: varchar2
+        }
+    )
+    pageItem P11_LAST_NAME (
+        type: textField
+        settings {
+            trimSpaces: leadingAndTrailing
+        }
+        label {
+            label: Last Name
+        }
+        layout {
+            sequence: 50
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            width: 50
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+        source {
+            formRegion: @employee
+            column: LAST_NAME
+            dataType: varchar2
+        }
+    )
+    pageItem P11_EMAIL (
+        type: textField
+        settings {
+            trimSpaces: leadingAndTrailing
+            subtype: email
+        }
+        label {
+            label: Email
+        }
+        layout {
+            sequence: 60
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            width: 50
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @employee
+            column: EMAIL
+            dataType: varchar2
+        }
+    )
+    pageItem P11_HIRE_DATE (
+        type: datePicker
+        settings {
+            displayAs: popup
+            showTime: false
+        }
+        label {
+            label: Hire Date
+        }
+        layout {
+            sequence: 70
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            formatMask: DD-MON-YYYY
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @employee
+            column: HIRE_DATE
+            dataType: date
+        }
+    )
+    pageItem P11_STATUS (
+        type: selectList
+        label {
+            label: Status
+        }
+        lov {
+            type: sharedComponent
+            lov: @employee-status
+            displayNullValue: false
+        }
+        layout {
+            sequence: 80
+            region: @employee
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @employee
+            column: STATUS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: ACTIVE
+        }
+    )
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @/text
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 2
+                clearCache: 11
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+    button create (
+        buttonName: CREATE
+        label: Create Employee
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+        }
+        behavior {
+            action: submitPage
+            databaseAction: insert
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P11_ID
+        }
+    )
+    button save (
+        buttonName: SAVE
+        label: Save Changes
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+        }
+        behavior {
+            action: submitPage
+            databaseAction: update
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_ID
+        }
+    )
+    button delete (
+        buttonName: DELETE
+        label: Delete Employee
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+        }
+        behavior {
+            action: submitPage
+            databaseAction: delete
+            warnOnUnsavedChanges: doNotCheck
+            executeValidations: false
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Delete this employee? Related records may prevent deletion.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P11_ID
+        }
+    )
+    process initialize-employee (
+        name: Initialize Employee
+        type: formInitialization
+        formRegion: @employee
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process save-employee (
+        name: Process Employee
+        type: formAutoRowProcessing
+        formRegion: @employee
+        execution {
+            sequence: 10
+            point: processing
+        }
+        target {
+            targetType: regionSource
+            preventLostUpdates: true
+            returnPksAfterInsert: true
+        }
+        successMessage {
+            successMessage: Employee changes saved.
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    branch (
+        name: Return to Employee Report
+        execution {
+            sequence: 20
+            point: afterProcessing
+        }
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 2
+                clearCache: 11
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+)

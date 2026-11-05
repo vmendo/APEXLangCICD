@@ -1,0 +1,359 @@
+page 13 (
+    name: Enrollment
+    alias: ENROLLMENT
+    title: Enrollment
+    appearance {
+        pageMode: normal
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: firstItemOnPage
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Enrollment
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+        }
+    )
+
+    region enrollment (
+        name: Enrollment Details
+        type: form
+        source {
+            location: localDatabase
+            type: tableView
+            tableName: DEMO_TRN_ENROLLMENTS
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+            lostUpdateType: rowValues
+        }
+    )
+
+    region buttons (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+    pageItem P13_ID (
+        type: hidden
+        settings {
+            valueProtected: true
+        }
+        layout {
+            sequence: 10
+            region: @enrollment
+            slot: regionBody
+        }
+        source {
+            formRegion: @enrollment
+            column: ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+    pageItem P13_SESSION_ID (
+        type: selectList
+        label {
+            label: Training Session
+        }
+        lov {
+            type: sharedComponent
+            lov: @sessions
+            displayNullValue: true
+            nullDisplayValue: Select an option
+        }
+        layout {
+            sequence: 20
+            region: @enrollment
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @enrollment
+            column: SESSION_ID
+            dataType: number
+        }
+    )
+    pageItem P13_EMPLOYEE_ID (
+        type: selectList
+        label {
+            label: Employee
+        }
+        lov {
+            type: sharedComponent
+            lov: @employees
+            displayNullValue: true
+            nullDisplayValue: Select an option
+        }
+        layout {
+            sequence: 30
+            region: @enrollment
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @enrollment
+            column: EMPLOYEE_ID
+            dataType: number
+        }
+    )
+    pageItem P13_ENROLLED_AT (
+        type: datePicker
+        settings {
+            displayAs: popup
+            showTime: true
+        }
+        label {
+            label: Enrollment Date
+        }
+        layout {
+            sequence: 40
+            region: @enrollment
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            formatMask: DD-MON-YYYY
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @enrollment
+            column: ENROLLED_AT
+            dataType: date
+        }
+        default {
+            type: expression
+            language: sql
+            sqlExpression:
+                ```sql
+                trunc(sysdate)
+                ```
+        }
+    )
+    pageItem P13_STATUS (
+        type: selectList
+        label {
+            label: Status
+        }
+        lov {
+            type: sharedComponent
+            lov: @enrollment-status
+            displayNullValue: false
+        }
+        layout {
+            sequence: 50
+            region: @enrollment
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @enrollment
+            column: STATUS
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: ENROLLED
+        }
+    )
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: previous
+        }
+        appearance {
+            buttonTemplate: @/text
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 5
+                clearCache: 13
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+    button create (
+        buttonName: CREATE
+        label: Create Enrollment
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+        }
+        behavior {
+            action: submitPage
+            databaseAction: insert
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P13_ID
+        }
+    )
+    button save (
+        buttonName: SAVE
+        label: Save Changes
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+        }
+        behavior {
+            action: submitPage
+            databaseAction: update
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P13_ID
+        }
+    )
+    button delete (
+        buttonName: DELETE
+        label: Delete Enrollment
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+        }
+        behavior {
+            action: submitPage
+            databaseAction: delete
+            warnOnUnsavedChanges: doNotCheck
+            executeValidations: false
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Delete this enrollment? Related records may prevent deletion.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P13_ID
+        }
+    )
+    process initialize-enrollment (
+        name: Initialize Enrollment
+        type: formInitialization
+        formRegion: @enrollment
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process save-enrollment (
+        name: Process Enrollment
+        type: formAutoRowProcessing
+        formRegion: @enrollment
+        execution {
+            sequence: 10
+            point: processing
+        }
+        target {
+            targetType: regionSource
+            preventLostUpdates: true
+            returnPksAfterInsert: true
+        }
+        successMessage {
+            successMessage: Enrollment changes saved.
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    branch (
+        name: Return to Enrollment Report
+        execution {
+            sequence: 20
+            point: afterProcessing
+        }
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 5
+                clearCache: 13
+            }
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+)

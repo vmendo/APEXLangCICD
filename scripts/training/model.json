@@ -1,0 +1,736 @@
+{
+  "model": "Employee Training",
+  "prefix": "DEMO_TRN_",
+  "version": "1.0",
+  "currency": "EUR",
+  "tables": [
+    {
+      "name": "DEMO_TRN_DEPARTMENTS",
+      "description": "Business departments funding employee development.",
+      "sequence": "DEMO_TRN_DEPARTMENTS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_DEPARTMENTS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "DEPARTMENT_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Readable department name."
+        },
+        {
+          "name": "COST_CENTER",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Internal fictional cost center."
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "DEPARTMENT_NAME"
+        ],
+        [
+          "COST_CENTER"
+        ]
+      ],
+      "checks": [],
+      "fks": []
+    },
+    {
+      "name": "DEMO_TRN_LOCATIONS",
+      "description": "Training office locations.",
+      "sequence": "DEMO_TRN_LOCATIONS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_LOCATIONS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "LOCATION_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Office or training center name."
+        },
+        {
+          "name": "CITY",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "City."
+        },
+        {
+          "name": "COUNTRY",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Country."
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "LOCATION_NAME"
+        ]
+      ],
+      "checks": [],
+      "fks": []
+    },
+    {
+      "name": "DEMO_TRN_ROOMS",
+      "description": "Training rooms available at each location.",
+      "sequence": "DEMO_TRN_ROOMS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_ROOMS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "LOCATION_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Location containing the room."
+        },
+        {
+          "name": "ROOM_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Room name within its location."
+        },
+        {
+          "name": "CAPACITY",
+          "type": "NUMBER(4)",
+          "nullable": false,
+          "description": "Maximum seated participants."
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "LOCATION_ID",
+          "ROOM_NAME"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "CAPACITY_CK",
+          "expression": "CAPACITY BETWEEN 1 AND 500"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "LOCATION_ID"
+          ],
+          "references_table": "DEMO_TRN_LOCATIONS",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEMO_TRN_EMPLOYEES",
+      "description": "Fictional employees who enroll in company training.",
+      "sequence": "DEMO_TRN_EMPLOYEES_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_EMPLOYEES_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "DEPARTMENT_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Employee department."
+        },
+        {
+          "name": "EMPLOYEE_NUMBER",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Business employee reference."
+        },
+        {
+          "name": "FIRST_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Given name."
+        },
+        {
+          "name": "LAST_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Family name."
+        },
+        {
+          "name": "EMAIL",
+          "type": "VARCHAR2(255)",
+          "nullable": false,
+          "description": "Fictional example.com email."
+        },
+        {
+          "name": "HIRE_DATE",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Employment start date."
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Employment status.",
+          "default": "'ACTIVE'"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "EMPLOYEE_NUMBER"
+        ],
+        [
+          "EMAIL"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "STATUS_CK",
+          "expression": "STATUS IN ('ACTIVE','INACTIVE')"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "DEPARTMENT_ID"
+          ],
+          "references_table": "DEMO_TRN_DEPARTMENTS",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEMO_TRN_CATEGORIES",
+      "description": "Learning catalog subject categories.",
+      "sequence": "DEMO_TRN_CATEGORIES_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_CATEGORIES_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "CATEGORY_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Category label."
+        },
+        {
+          "name": "DESCRIPTION",
+          "type": "VARCHAR2(500)",
+          "nullable": true,
+          "description": "Category scope."
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "CATEGORY_NAME"
+        ]
+      ],
+      "checks": [],
+      "fks": []
+    },
+    {
+      "name": "DEMO_TRN_COURSES",
+      "description": "Reusable training catalog with duration and per-person fee.",
+      "sequence": "DEMO_TRN_COURSES_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_COURSES_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "CATEGORY_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Catalog category."
+        },
+        {
+          "name": "COURSE_CODE",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Unique catalog reference."
+        },
+        {
+          "name": "COURSE_NAME",
+          "type": "VARCHAR2(200)",
+          "nullable": false,
+          "description": "Catalog display title."
+        },
+        {
+          "name": "DESCRIPTION",
+          "type": "VARCHAR2(1000)",
+          "nullable": true,
+          "description": "Learning objectives."
+        },
+        {
+          "name": "DURATION_HOURS",
+          "type": "NUMBER(4,1)",
+          "nullable": false,
+          "description": "Instructional hours."
+        },
+        {
+          "name": "COURSE_FEE",
+          "type": "NUMBER(10,2)",
+          "nullable": false,
+          "description": "Per-person course fee in EUR.",
+          "default": "0"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Catalog lifecycle state.",
+          "default": "'ACTIVE'"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "COURSE_CODE"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "DURATION_CK",
+          "expression": "DURATION_HOURS > 0 AND DURATION_HOURS <= 80"
+        },
+        {
+          "name": "FEE_CK",
+          "expression": "COURSE_FEE >= 0"
+        },
+        {
+          "name": "STATUS_CK",
+          "expression": "STATUS IN ('ACTIVE','RETIRED')"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "CATEGORY_ID"
+          ],
+          "references_table": "DEMO_TRN_CATEGORIES",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEMO_TRN_INSTRUCTORS",
+      "description": "Fictional internal and partner training instructors.",
+      "sequence": "DEMO_TRN_INSTRUCTORS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_INSTRUCTORS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "FIRST_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Given name."
+        },
+        {
+          "name": "LAST_NAME",
+          "type": "VARCHAR2(100)",
+          "nullable": false,
+          "description": "Family name."
+        },
+        {
+          "name": "EMAIL",
+          "type": "VARCHAR2(255)",
+          "nullable": false,
+          "description": "Fictional example.com email."
+        },
+        {
+          "name": "SPECIALTY",
+          "type": "VARCHAR2(200)",
+          "nullable": true,
+          "description": "Primary teaching focus."
+        },
+        {
+          "name": "ACTIVE_FLAG",
+          "type": "VARCHAR2(1)",
+          "nullable": false,
+          "description": "Y for currently available instructors.",
+          "default": "'Y'"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "EMAIL"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "ACTIVE_CK",
+          "expression": "ACTIVE_FLAG IN ('Y','N')"
+        }
+      ],
+      "fks": []
+    },
+    {
+      "name": "DEMO_TRN_SESSIONS",
+      "description": "Scheduled deliveries of catalog courses in physical rooms.",
+      "sequence": "DEMO_TRN_SESSIONS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_SESSIONS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "COURSE_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Course being delivered."
+        },
+        {
+          "name": "INSTRUCTOR_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Assigned instructor."
+        },
+        {
+          "name": "ROOM_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Assigned training room."
+        },
+        {
+          "name": "SESSION_CODE",
+          "type": "VARCHAR2(30)",
+          "nullable": false,
+          "description": "Unique delivery reference."
+        },
+        {
+          "name": "START_DATE",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Session start date and time."
+        },
+        {
+          "name": "END_DATE",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Session end date and time."
+        },
+        {
+          "name": "CAPACITY",
+          "type": "NUMBER(4)",
+          "nullable": false,
+          "description": "Available enrollment seats."
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Delivery lifecycle state.",
+          "default": "'SCHEDULED'"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "SESSION_CODE"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "DATES_CK",
+          "expression": "END_DATE > START_DATE"
+        },
+        {
+          "name": "CAPACITY_CK",
+          "expression": "CAPACITY BETWEEN 1 AND 500"
+        },
+        {
+          "name": "STATUS_CK",
+          "expression": "STATUS IN ('SCHEDULED','COMPLETED','CANCELLED')"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "COURSE_ID"
+          ],
+          "references_table": "DEMO_TRN_COURSES",
+          "references_columns": [
+            "ID"
+          ]
+        },
+        {
+          "columns": [
+            "INSTRUCTOR_ID"
+          ],
+          "references_table": "DEMO_TRN_INSTRUCTORS",
+          "references_columns": [
+            "ID"
+          ]
+        },
+        {
+          "columns": [
+            "ROOM_ID"
+          ],
+          "references_table": "DEMO_TRN_ROOMS",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEMO_TRN_ENROLLMENTS",
+      "description": "Employee registrations for training deliveries.",
+      "sequence": "DEMO_TRN_ENROLLMENTS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_ENROLLMENTS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "SESSION_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Session attended or booked."
+        },
+        {
+          "name": "EMPLOYEE_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Registered employee."
+        },
+        {
+          "name": "ENROLLED_AT",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Registration date and time.",
+          "default": "SYSDATE"
+        },
+        {
+          "name": "STATUS",
+          "type": "VARCHAR2(20)",
+          "nullable": false,
+          "description": "Registration outcome.",
+          "default": "'ENROLLED'"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "SESSION_ID",
+          "EMPLOYEE_ID"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "STATUS_CK",
+          "expression": "STATUS IN ('ENROLLED','COMPLETED','CANCELLED')"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "SESSION_ID"
+          ],
+          "references_table": "DEMO_TRN_SESSIONS",
+          "references_columns": [
+            "ID"
+          ]
+        },
+        {
+          "columns": [
+            "EMPLOYEE_ID"
+          ],
+          "references_table": "DEMO_TRN_EMPLOYEES",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEMO_TRN_EVALUATIONS",
+      "description": "One participant feedback response per completed enrollment.",
+      "sequence": "DEMO_TRN_EVALUATIONS_SEQ",
+      "columns": [
+        {
+          "name": "ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "default": "DEMO_TRN_EVALUATIONS_SEQ.NEXTVAL",
+          "description": "Stable row identifier; defaults from a named training sequence."
+        },
+        {
+          "name": "ENROLLMENT_ID",
+          "type": "NUMBER",
+          "nullable": false,
+          "description": "Completed registration being evaluated."
+        },
+        {
+          "name": "SCORE",
+          "type": "NUMBER(1)",
+          "nullable": false,
+          "description": "Overall participant rating from one to five."
+        },
+        {
+          "name": "COMMENTS",
+          "type": "VARCHAR2(1000)",
+          "nullable": true,
+          "description": "Participant feedback."
+        },
+        {
+          "name": "SUBMITTED_AT",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Feedback submission time.",
+          "default": "SYSDATE"
+        }
+      ],
+      "pk": [
+        "ID"
+      ],
+      "uniques": [
+        [
+          "ENROLLMENT_ID"
+        ]
+      ],
+      "checks": [
+        {
+          "name": "SCORE_CK",
+          "expression": "SCORE BETWEEN 1 AND 5"
+        }
+      ],
+      "fks": [
+        {
+          "columns": [
+            "ENROLLMENT_ID"
+          ],
+          "references_table": "DEMO_TRN_ENROLLMENTS",
+          "references_columns": [
+            "ID"
+          ]
+        }
+      ]
+    }
+  ],
+  "indexes": [
+    {
+      "name": "DEMO_TRN_EMPLOYEES_FK1_IX",
+      "table": "DEMO_TRN_EMPLOYEES",
+      "columns": [
+        "DEPARTMENT_ID"
+      ]
+    },
+    {
+      "name": "DEMO_TRN_COURSES_FK1_IX",
+      "table": "DEMO_TRN_COURSES",
+      "columns": [
+        "CATEGORY_ID"
+      ]
+    },
+    {
+      "name": "DEMO_TRN_SESSIONS_FK1_IX",
+      "table": "DEMO_TRN_SESSIONS",
+      "columns": [
+        "COURSE_ID"
+      ]
+    },
+    {
+      "name": "DEMO_TRN_SESSIONS_FK2_IX",
+      "table": "DEMO_TRN_SESSIONS",
+      "columns": [
+        "INSTRUCTOR_ID"
+      ]
+    },
+    {
+      "name": "DEMO_TRN_SESSIONS_FK3_IX",
+      "table": "DEMO_TRN_SESSIONS",
+      "columns": [
+        "ROOM_ID"
+      ]
+    },
+    {
+      "name": "DEMO_TRN_ENROLLMENTS_FK2_IX",
+      "table": "DEMO_TRN_ENROLLMENTS",
+      "columns": [
+        "EMPLOYEE_ID"
+      ]
+    }
+  ],
+  "reserved_release_1_1": {
+    "table": "DEMO_TRN_CERTIFICATIONS",
+    "column": {
+      "table": "DEMO_TRN_COURSES",
+      "name": "CERTIFICATION_REQUIRED"
+    },
+    "note": "Reserved for the later manual change demonstration; absent from baseline DDL/data/application."
+  },
+  "seed_counts": {
+    "DEMO_TRN_DEPARTMENTS": 6,
+    "DEMO_TRN_LOCATIONS": 3,
+    "DEMO_TRN_ROOMS": 5,
+    "DEMO_TRN_EMPLOYEES": 30,
+    "DEMO_TRN_CATEGORIES": 5,
+    "DEMO_TRN_COURSES": 10,
+    "DEMO_TRN_INSTRUCTORS": 6,
+    "DEMO_TRN_SESSIONS": 16,
+    "DEMO_TRN_ENROLLMENTS": 80,
+    "DEMO_TRN_EVALUATIONS": 40
+  }
+}

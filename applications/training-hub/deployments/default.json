@@ -1,0 +1,13 @@
+{
+  "app": {
+    "id": 110,
+    "name": "Training Hub",
+    "alias": "TRAINING-HUB",
+    "databaseSession": {
+      "parsingSchema": "DEMO"
+    }
+  },
+  "workspace": {
+    "name": "DEMO"
+  }
+}
